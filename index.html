@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Online</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #4B0082, #2F4F4F); /* Indigo para DarkSlateGray */
+            color: #F5F5F5; /* WhiteSmoke */
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(45deg, #4B0082, #DAA520); /* Indigo para GoldenRod */
+            border-bottom: 3px solid #DAA520; /* GoldenRod */
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            color: #F5F5F5; /* WhiteSmoke */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        header h1::before {
+            content: '📅';
+            font-size: 40px;
+        }
+
+        .container {
+            background: #4B0082; /* Indigo */
+            border: 3px solid #DAA520; /* GoldenRod */
+            border-radius: 15px;
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .calendar-section h2,
+        .tasks-section h2,
+        .settings-section h2 {
+            color: #DAA520; /* GoldenRod */
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .calendar-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-controls select {
+            padding: 8px;
+            border: 1px solid #DAA520; /* GoldenRod */
+            border-radius: 5px;
+            background: #F5F5F5; /* WhiteSmoke */
+            color: #4B0082; /* Indigo */
+            font-size: 16px;
+        }
+
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            background: rgba(218, 165, 32, 0.1); /* GoldenRod com transparência */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #DAA520; /* GoldenRod */
+            margin-bottom: 30px;
+        }
+
+        .calendar div {
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            background: #F5F5F5; /* WhiteSmoke */
+            color: #4B0082; /* Indigo */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .calendar div.header {
+            background: #DAA520; /* GoldenRod */
+            color: #4B0082; /* Indigo */
+            font-weight: bold;
+        }
+
+        .calendar div:hover {
+            background: #FFD700; /* Gold */
+        }
+
+        .calendar div.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .event-form,
+        .task-form {
+            background: rgba(245, 245, 245, 0.1); /* WhiteSmoke com transparência */
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #DAA520; /* GoldenRod */
+            margin-bottom: 30px;
+        }
+
+        .event-form label,
+        .task-form label {
+            display: block;
+            margin-bottom: 10px;
+            color: #F5F5F5; /* WhiteSmoke */
+            font-size: 16px;
+        }
+
+        .event-form input,
+        .event-form select,
+        .task-form input,
+        .task-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #DAA520; /* GoldenRod */
+            border-radius: 5px;
+            background: #F5F5F5; /* WhiteSmoke */
+            color: #4B0082; /* Indigo */
+            font-size: 16px;
+        }
+
+        .event-form input:focus,
+        .event-form select:focus,
+        .task-form input:focus,
+        .task-form select:focus {
+            border-color: #FFD700; /* Gold */
+            outline: none;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .add-btn,
+        .save-btn {
+            background: linear-gradient(45deg, #DAA520, #FFD700); /* GoldenRod para Gold */
+            color: #4B0082; /* Indigo */
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .tasks-list {
+            margin-bottom: 30px;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F5F5F5; /* WhiteSmoke */
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            color: #4B0082; /* Indigo */
+        }
+
+        .task-item.completed {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        .settings-section {
+            background: rgba(245, 245, 245, 0.1); /* WhiteSmoke com transparência */
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #DAA520; /* GoldenRod */
+        }
+
+        .settings-section label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+            background: #4B0082; /* Indigo */
+            border-top: 3px solid #DAA520; /* GoldenRod */
+            color: #F5F5F5; /* WhiteSmoke */
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #DAA520; /* GoldenRod */
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        footer a:hover {
+            color: #FFD700; /* Gold */
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            .calendar {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .button-container {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+            header h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Agenda Online</h1>
+    </header>
+
+    <div class="container">
+        <div class="calendar-section">
+            <h2>Calendário</h2>
+            <div class="calendar-controls">
+                <select id="month" onchange="updateCalendar()">
+                    <option value="0">Janeiro</option>
+                    <option value="1">Fevereiro</option>
+                    <option value="2">Março</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Maio</option>
+                    <option value="5">Junho</option>
+                    <option value="6">Julho</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Setembro</option>
+                    <option value="9">Outubro</option>
+                    <option value="10">Novembro</option>
+                    <option value="11">Dezembro</option>
+                </select>
+                <select id="year" onchange="updateCalendar()">
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="calendar" id="calendar">
+                <!-- Calendário será preenchido via JavaScript -->
+            </div>
+
+            <div class="event-form">
+                <h3>Adicionar Evento</h3>
+                <label>
+                    Data:
+                    <input type="date" id="event-date">
+                </label>
+                <label>
+                    Horário:
+                    <input type="time" id="event-time">
+                </label>
+                <label>
+                    Descrição:
+                    <input type="text" id="event-description" placeholder="Digite o evento">
+                </label>
+                <label>
+                    Repetir:
+                    <select id="event-repeat">
+                        <option value="none">Não repetir</option>
+                        <option value="daily">Diariamente</option>
+                        <option value="weekly">Semanalmente</option>
+                        <option value="monthly">Mensalmente</option>
+                    </select>
+                </label>
+                <label>
+                    Lembrete:
+                    <select id="event-reminder">
+                        <option value="none">Sem lembrete</option>
+                        <option value="email">E-mail</option>
+                        <option value="push">Notificação Push</option>
+                    </select>
+                </label>
+                <div class="button-container">
+                    <button class="add-btn" onclick="addEvent()">Adicionar Evento</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <h2>Tarefas</h2>
+            <div class="task-form">
+                <h3>Adicionar Tarefa</h3>
+                <label>
+                    Descrição:
+                    <input type="text" id="task-description" placeholder="Digite a tarefa">
+                </label>
+                <label>
+                    Data de Vencimento:
+                    <input type="date" id="task-due-date">
+                </label>
+                <label>
+                    Prioridade:
+                    <select id="task-priority">
+                        <option value="low">Baixa</option>
+                        <option value="medium">Média</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </label>
+                <div class="button-container">
+                    <button class="add-btn" onclick="addTask()">Adicionar Tarefa</button>
+                </div>
+            </div>
+            <div class="tasks-list" id="tasks-list">
+                <!-- Tarefas serão preenchidas via JavaScript -->
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>Configurações</h2>
+            <label>
+                Cor de Fundo do Calendário:
+                <input type="color" id="calendar-bg" value="#F5F5F5">
+            </label>
+            <label>
+                Cor do Texto:
+                <input type="color" id="calendar-text" value="#4B0082">
+            </label>
+            <div class="button-container">
+                <button class="save-btn" onclick="applySettings()">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 Agenda Online | Desenvolvido por <a href="#">xAI</a></p>
+    </footer>
+
+    <script>
+        let events = [];
+        let tasks = [];
+
+        function updateCalendar() {
+            const month = parseInt(document.getElementById('month').value);
+            const year = parseInt(document.getElementById('year').value);
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            // Dias da semana
+            const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            daysOfWeek.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'header';
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+
+            // Primeiro dia do mês
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Preencher dias vazios antes do início do mês
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'empty';
+                calendar.appendChild(emptyDay);
+            }
+
+            // Preencher dias do mês
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.onclick = () => alert(`Eventos do dia ${day}/${month + 1}/${year}: Em breve!`);
+                calendar.appendChild(dayDiv);
+            }
+        }
+
+        function addEvent() {
+            const date = document.getElementById('event-date').value;
+            const time = document.getElementById('event-time').value;
+            const description = document.getElementById('event-description').value;
+            const repeat = document.getElementById('event-repeat').value;
+            const reminder = document.getElementById('event-reminder').value;
+
+            if (!date || !description) {
+                alert('Por favor, preencha a data e a descrição do evento!');
+                return;
+            }
+
+            events.push({ date, time, description, repeat, reminder });
+            alert('Evento adicionado com sucesso!');
+            document.getElementById('event-date').value = '';
+            document.getElementById('event-time').value = '';
+            document.getElementById('event-description').value = '';
+            document.getElementById('event-repeat').value = 'none';
+            document.getElementById('event-reminder').value = 'none';
+        }
+
+        function addTask() {
+            const description = document.getElementById('task-description').value;
+            const dueDate = document.getElementById('task-due-date').value;
+            const priority = document.getElementById('task-priority').value;
+
+            if (!description || !dueDate) {
+                alert('Por favor, preencha a descrição e a data de vencimento da tarefa!');
+                return;
+            }
+
+            tasks.push({ description, dueDate, priority, completed: false });
+            renderTasks();
+            document.getElementById('task-description').value = '';
+            document.getElementById('task-due-date').value = '';
+            document.getElementById('task-priority').value = 'low';
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = '';
+
+            tasks.forEach((task, index) => {
+                const taskItem = document.createElement('div');
+                taskItem.className = `task-item ${task.completed ? 'completed' : ''}`;
+                taskItem.innerHTML = `
+                    <span>${task.description} - Vence: ${task.dueDate} (Prioridade: ${task.priority})</span>
+                    <div>
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
+                        <button onclick="deleteTask(${index})">Excluir</button>
+                    </div>
+                `;
+                tasksList.appendChild(taskItem);
+            });
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        function applySettings() {
+            const bgColor = document.getElementById('calendar-bg').value;
+            const textColor = document.getElementById('calendar-text').value;
+
+            const calendarDays = document.querySelectorAll('.calendar div:not(.header):not(.empty)');
+            calendarDays.forEach(day => {
+                day.style.background = bgColor;
+                day.style.color = textColor;
+            });
+
+            alert('Configurações aplicadas com sucesso!');
+        }
+
+        window.onload = () => {
+            const today = new Date();
+            document.getElementById('month').value = today.getMonth();
+            document.getElementById('year').value = today.getFullYear();
+            updateCalendar();
+        };
+    </script>
+</body>
+</html>
